@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Reading by Name</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .result p {
+            color: #333;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Personality Reading</h1>
+        <div class="input-group">
+            <label for="nameInput">Enter your name:</label>
+            <input type="text" id="nameInput" placeholder="e.g., John" autocomplete="off">
+        </div>
+        <button onclick="generateReading()">Get Your Reading</button>
+        <div class="result" id="result">
+            <p id="readingText"></p>
+        </div>
+    </div>
+
+    <script>
+        // Dictionary of personality traits organized by letter
+        const traits = {
+            'a': ['adventurous', 'ambitious', 'analytical', 'artistic', 'assertive', 'attentive'],
+            'b': ['brave', 'bright', 'balanced', 'benevolent', 'bold', 'brilliant'],
+            'c': ['creative', 'compassionate', 'confident', 'curious', 'calm', 'charismatic'],
+            'd': ['determined', 'diligent', 'dynamic', 'diplomatic', 'dependable', 'dreamy'],
+            'e': ['energetic', 'empathetic', 'enthusiastic', 'elegant', 'expressive', 'easygoing'],
+            'f': ['friendly', 'focused', 'fearless', 'flexible', 'faithful', 'funny'],
+            'g': ['generous', 'gentle', 'graceful', 'grounded', 'genuine', 'grateful'],
+            'h': ['helpful', 'hopeful', 'honest', 'humble', 'humorous', 'harmonious'],
+            'i': ['intelligent', 'innovative', 'inspiring', 'independent', 'intuitive', 'imaginative'],
+            'j': ['jolly', 'joyful', 'judicious', 'jovial', 'just', 'jubilant'],
+            'k': ['kind', 'knowledgeable', 'keen', 'knightly', 'kooky', 'kindhearted'],
+            'l': ['loyal', 'loving', 'logical', 'lively', 'liberal', 'luminous'],
+            'm': ['mysterious', 'mature', 'motivated', 'modest', 'mindful', 'magnificent'],
+            'n': ['nonviolent', 'nurturing', 'noble', 'natural', 'neat', 'notable'],
+            'o': ['organized', 'optimistic', 'open-minded', 'outgoing', 'original', 'observant'],
+            'p': ['patient', 'passionate', 'peaceful', 'practical', 'positive', 'perceptive'],
+            'q': ['quiet', 'quick-witted', 'quality-focused', 'quirky', 'questing', 'queenly'],
+            'r': ['reliable', 'respectful', 'resourceful', 'radiant', 'rational', 'resilient'],
+            's': ['smart', 'sincere', 'strong', 'sociable', 'spiritual', 'supportive'],
+            't': ['thoughtful', 'trustworthy', 'talented', 'tenacious', 'tranquil', 'triumphant'],
+            'u': ['understanding', 'unique', 'upbeat', 'unwavering', 'unselfish', 'uplifting'],
+            'v': ['vibrant', 'virtuous', 'visionary', 'valiant', 'versatile', 'vivacious'],
+            'w': ['wise', 'warm', 'witty', 'wonderful', 'welcoming', 'wonderful'],
+            'x': ['xenial', 'x-factor', 'exceptional', 'extraordinary', 'excellent', 'exuberant'],
+            'y': ['youthful', 'yearning', 'yielding', 'yummy', 'yare', 'youthful'],
+            'z': ['zealous', 'zestful', 'zen', 'zany', 'zestful', 'zealful']
+        };
+
+        function generateReading() {
+            const nameInput = document.getElementById('nameInput');
+            const resultDiv = document.getElementById('result');
+            const readingText = document.getElementById('readingText');
+            
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter a name!');
+                return;
+            }
+
+            // Extract first name and convert to lowercase
+            const firstName = name.split(' ')[0].toLowerCase();
+            const firstNameLetters = firstName.split('').filter(char => /[a-z]/.test(char));
+            
+            if (firstNameLetters.length === 0) {
+                alert('Please enter a valid name with letters!');
+                return;
+            }
+
+            // Generate reading
+            const reading = generatePersonalityReading(firstNameLetters);
+            
+            readingText.textContent = reading;
+            resultDiv.classList.add('show');
+        }
+
+        function generatePersonalityReading(letters) {
+            let reading = 'People with this name are ';
+            let letterIndex = 0;
+            // Generate traits: alternate between name-letter traits and generic ones
+            // Ensure we have at least enough traits to use all letters
+            const totalTraits = Math.max(letters.length * 2, 6);
+            const traitParts = [];
+
+            const descriptivePhrases = [
+                'by nature',
+                'to others',
+                'in their day to day work',
+                'while dealing with kids',
+                'towards life',
+                'in any given situation'
+            ];
+
+            const genericPhrases = [
+                'they also have a caring nature',
+                'they are known to be supportive',
+                'they tend to be understanding',
+                'they show great resilience',
+                'they possess inner strength',
+                'they demonstrate wisdom',
+                'they have a warm heart',
+                'they exhibit patience',
+                'they show kindness',
+                'they are known for their integrity',
+                'they have a mysterious persona',
+                'have a hopeful outlook'
+            ];
+
+            // Build trait parts
+            for (let i = 0; i < totalTraits; i++) {
+                if (i % 2 === 0 && letterIndex < letters.length) {
+                    // Trait starting with a letter from the name
+                    const letter = letters[letterIndex];
+                    const letterTraits = traits[letter] || traits['a'];
+                    const trait = letterTraits[Math.floor(Math.random() * letterTraits.length)];
+                    const phrase = descriptivePhrases[Math.floor(Math.random() * descriptivePhrases.length)];
+                    traitParts.push(`${trait} ${phrase}`);
+                    letterIndex++;
+                } else {
+                    // Generic trait
+                    const genericPhrase = genericPhrases[Math.floor(Math.random() * genericPhrases.length)];
+                    traitParts.push(genericPhrase);
+                }
+            }
+
+            // Ensure the last trait uses a name letter with special formatting
+            if (letterIndex < letters.length) {
+                const letter = letters[letterIndex];
+                const letterTraits = traits[letter] || traits['a'];
+                const trait = letterTraits[Math.floor(Math.random() * letterTraits.length)];
+                const phrase = descriptivePhrases[Math.floor(Math.random() * descriptivePhrases.length)];
+                traitParts[traitParts.length - 1] = `${trait} as they can be ${phrase}`;
+            } else if (traitParts.length > 0) {
+                // Last trait should be from name letters, replace if needed
+                const lastLetter = letters[letters.length - 1];
+                const letterTraits = traits[lastLetter] || traits['a'];
+                const trait = letterTraits[Math.floor(Math.random() * letterTraits.length)];
+                const phrase = descriptivePhrases[Math.floor(Math.random() * descriptivePhrases.length)];
+                traitParts[traitParts.length - 1] = `${trait} as they can be ${phrase}`;
+            }
+
+            // Combine all parts
+            for (let i = 0; i < traitParts.length; i++) {
+                if (i === 0) {
+                    reading += traitParts[i];
+                } else if (i === traitParts.length - 1) {
+                    reading += `, but they are as ${traitParts[i]}.`;
+                } else {
+                    reading += `, ${traitParts[i]}`;
+                }
+            }
+
+            return reading;
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateReading();
+            }
+        });
+    </script>
+</body>
+</html>
